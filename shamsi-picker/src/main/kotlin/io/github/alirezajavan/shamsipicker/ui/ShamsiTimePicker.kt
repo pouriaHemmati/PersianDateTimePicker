@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +51,43 @@ public fun ShamsiTimePickerDialog(
     typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
     strings: ShamsiTimePickerStrings = ShamsiPickerDefaults.timeStrings(calendarType = config.calendarType),
 ) {
+    var confirmedValue by remember { mutableStateOf<ShamsiTime?>(null) }
+
+    PickerDialogScaffold(
+        title = strings.title,
+        confirmText = strings.confirmText,
+        cancelText = strings.cancelText,
+        onCancel = onDismiss,
+        onConfirm = { confirmedValue?.let(onConfirm) },
+        colors = colors,
+        typography = typography,
+    ) {
+        ShamsiTimePicker(
+            onValueChange = { confirmedValue = it },
+            config = config,
+            colors = colors,
+            typography = typography,
+            strings = strings,
+        )
+    }
+}
+
+/**
+ * An inline time picker supporting both Shamsi and Gregorian numerals.
+ *
+ * Use [ShamsiTimePickerConfig] to set the initial time, optional time bounds,
+ * and calendar type. Use [colors], [typography], and [strings] to restyle or
+ * re-word the picker.
+ */
+@Composable
+public fun ShamsiTimePicker(
+    onValueChange: (ShamsiTime) -> Unit,
+    modifier: Modifier = Modifier,
+    config: ShamsiTimePickerConfig = ShamsiTimePickerConfig(),
+    colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
+    typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
+    strings: ShamsiTimePickerStrings = ShamsiPickerDefaults.timeStrings(calendarType = config.calendarType),
+) {
     val initialTime = remember { config.initialTime.toShamsiTime() }
     val resolvedMin = remember(config.minTime) { config.minTime?.toShamsiTime() }
     val resolvedMax = remember(config.maxTime) { config.maxTime?.toShamsiTime() }
@@ -57,15 +97,11 @@ public fun ShamsiTimePickerDialog(
     var hour by remember { mutableIntStateOf(initialTime.hour) }
     var minute by remember { mutableIntStateOf(initialTime.minute) }
 
-    PickerDialogScaffold(
-        title = strings.title,
-        confirmText = strings.confirmText,
-        cancelText = strings.cancelText,
-        onCancel = onDismiss,
-        onConfirm = { onConfirm(ShamsiTime(hour, minute)) },
-        colors = colors,
-        typography = typography,
-    ) {
+    LaunchedEffect(hour, minute) {
+        onValueChange(ShamsiTime(hour, minute))
+    }
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         TimePicker(
             hour = hour,
             minute = minute,

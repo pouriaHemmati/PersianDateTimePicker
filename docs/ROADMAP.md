@@ -208,14 +208,14 @@ A living, checkbox-driven backlog for `shamsi-core` and `shamsi-picker`.
 > Lets apps embed pickers directly in a screen (booking forms), mirroring
 > Material3's `DatePicker` vs `DatePickerDialog` split.
 
-- [ ] Extract dialog content into standalone `ShamsiDatePicker` / `ShamsiTimePicker`
-      composables taking `config` + `onValueChange`, no dialog chrome.
-- [ ] Re-implement the `*Dialog` composables as thin wrappers (chrome + confirm/
-      dismiss only) around the inline versions.
-- [ ] Do the same for the range pickers.
-- [ ] **Sample app:** add a screen that embeds an inline picker directly in the
+- [x] Extract dialog content into standalone `ShamsiDatePicker` / `ShamsiTimePicker`
+      composables taking `config` + `onValueChange`, no dialog chrome. — done 2026-07-08
+- [x] Re-implement the `*Dialog` composables as thin wrappers (chrome + confirm/
+      dismiss only) around the inline versions. — done 2026-07-08
+- [x] Do the same for the range pickers. — done 2026-07-08
+- [x] **Sample app:** add a screen that embeds an inline picker directly in the
       layout (no dialog) alongside a live-updating result label. README "Inline
-      usage" section.
+      usage" section. — done 2026-07-08
 
 ---
 

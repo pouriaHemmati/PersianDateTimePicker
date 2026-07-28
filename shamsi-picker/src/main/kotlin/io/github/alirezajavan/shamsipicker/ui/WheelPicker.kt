@@ -74,7 +74,7 @@ public fun WheelPicker(
     selectedColor: Color = MaterialTheme.colorScheme.onSurface,
     unselectedColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     disabledColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = ShamsiPickerDimens.DISABLED_CONTENT_ALPHA),
-    fadeColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    fadeColor: Color = Color.Transparent,
     dimAlpha: Float = ShamsiPickerDimens.WHEEL_DIM_ALPHA,
     content: @Composable (index: Int) -> Unit,
 ) {
@@ -253,7 +253,7 @@ public fun WheelPicker(
     selectedColor: Color = MaterialTheme.colorScheme.onSurface,
     unselectedColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     disabledColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = ShamsiPickerDimens.DISABLED_CONTENT_ALPHA),
-    fadeColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    fadeColor: Color = Color.Transparent,
     dimAlpha: Float = ShamsiPickerDimens.WHEEL_DIM_ALPHA,
 ) {
     WheelPicker(

@@ -12,8 +12,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,6 +52,41 @@ public fun ShamsiTimeRangePickerDialog(
     typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
     strings: ShamsiTimeRangePickerStrings = ShamsiPickerDefaults.timeRangeStrings(calendarType = config.calendarType),
 ) {
+    var confirmedValue by remember { mutableStateOf<ShamsiTimeRange?>(null) }
+
+    PickerDialogScaffold(
+        title = strings.title,
+        confirmText = strings.confirmText,
+        cancelText = strings.cancelText,
+        onCancel = onDismiss,
+        onConfirm = { confirmedValue?.let(onConfirm) },
+        colors = colors,
+        typography = typography,
+    ) {
+        ShamsiTimeRangePicker(
+            onValueChange = { confirmedValue = it },
+            config = config,
+            colors = colors,
+            typography = typography,
+            strings = strings,
+        )
+    }
+}
+
+/**
+ * An inline time range picker supporting both Shamsi and Gregorian numerals.
+ *
+ * Shows two time picker components stacked vertically for range selection.
+ */
+@Composable
+public fun ShamsiTimeRangePicker(
+    onValueChange: (ShamsiTimeRange) -> Unit,
+    modifier: Modifier = Modifier,
+    config: ShamsiTimeRangePickerConfig = ShamsiTimeRangePickerConfig(),
+    colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
+    typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
+    strings: ShamsiTimeRangePickerStrings = ShamsiPickerDefaults.timeRangeStrings(calendarType = config.calendarType),
+) {
     val initFrom = remember { config.initialFrom.toShamsiTime() }
     val initTo = remember { config.initialTo.toShamsiTime() }
     val resolvedMin = remember(config.minTime) { config.minTime?.toShamsiTime() }
@@ -79,58 +116,51 @@ public fun ShamsiTimeRangePickerDialog(
     if (toMinute < toMlo) toMinute = toMlo
     if (toMinute > toMhi) toMinute = toMhi
 
-    PickerDialogScaffold(
-        title = strings.title,
-        confirmText = strings.confirmText,
-        cancelText = strings.cancelText,
-        onCancel = onDismiss,
-        onConfirm = {
-            val from = ShamsiTime(fromHour, fromMinute)
-            val to = ShamsiTime(toHour, toMinute)
-            if (from <= to) onConfirm(ShamsiTimeRange(from, to)) else onConfirm(ShamsiTimeRange(to, from))
-        },
-        colors = colors,
-        typography = typography,
+    LaunchedEffect(fromHour, fromMinute, toHour, toMinute) {
+        val from = ShamsiTime(fromHour, fromMinute)
+        val to = ShamsiTime(toHour, toMinute)
+        val result = if (from <= to) ShamsiTimeRange(from, to) else ShamsiTimeRange(to, from)
+        onValueChange(result)
+    }
+
+    // Labels are in the device's natural RTL context so Persian text sits on the right.
+    // Only the wheel rows are forced to LTR (to keep H:M column order consistent).
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(ShamsiPickerDimens.RANGE_ROW_SPACING_DP.dp),
     ) {
-        // Labels are in the device's natural RTL context so Persian text sits on the right.
-        // Only the wheel rows are forced to LTR (to keep H:M column order consistent).
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(ShamsiPickerDimens.RANGE_ROW_SPACING_DP.dp),
-        ) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                TimeWheelRow(
-                    initialHour = initFrom.hour,
-                    initialMinute = initFrom.minute,
-                    is24h = is24h,
-                    minTime = resolvedMin,
-                    maxTime = resolvedMax,
-                    numberFormatter = numberFormatter,
-                    colors = colors,
-                    typography = typography,
-                    strings = strings,
-                    onHourChange = { fromHour = it },
-                    onMinuteChange = { fromMinute = it },
-                    compact = config.compactWheel,
-                )
-            }
-            HorizontalDivider(modifier = Modifier.padding(vertical = ShamsiPickerDimens.RANGE_DIVIDER_PADDING_DP.dp))
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                TimeWheelRow(
-                    initialHour = initTo.hour,
-                    initialMinute = initTo.minute,
-                    is24h = is24h,
-                    minTime = effectiveToMin,
-                    maxTime = resolvedMax,
-                    numberFormatter = numberFormatter,
-                    colors = colors,
-                    typography = typography,
-                    strings = strings,
-                    onHourChange = { toHour = it },
-                    onMinuteChange = { toMinute = it },
-                    compact = config.compactWheel,
-                )
-            }
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            TimeWheelRow(
+                initialHour = initFrom.hour,
+                initialMinute = initFrom.minute,
+                is24h = is24h,
+                minTime = resolvedMin,
+                maxTime = resolvedMax,
+                numberFormatter = numberFormatter,
+                colors = colors,
+                typography = typography,
+                strings = strings,
+                onHourChange = { fromHour = it },
+                onMinuteChange = { fromMinute = it },
+                compact = config.compactWheel,
+            )
+        }
+        HorizontalDivider(modifier = Modifier.padding(vertical = ShamsiPickerDimens.RANGE_DIVIDER_PADDING_DP.dp))
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            TimeWheelRow(
+                initialHour = initTo.hour,
+                initialMinute = initTo.minute,
+                is24h = is24h,
+                minTime = effectiveToMin,
+                maxTime = resolvedMax,
+                numberFormatter = numberFormatter,
+                colors = colors,
+                typography = typography,
+                strings = strings,
+                onHourChange = { toHour = it },
+                onMinuteChange = { toMinute = it },
+                compact = config.compactWheel,
+            )
         }
     }
 }

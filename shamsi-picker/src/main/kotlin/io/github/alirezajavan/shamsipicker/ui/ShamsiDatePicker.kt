@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,6 +70,43 @@ public fun ShamsiDatePickerDialog(
     typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
     strings: ShamsiDatePickerStrings = ShamsiPickerDefaults.dateStrings(calendarType = config.calendarType),
 ) {
+    var confirmedValue by remember { mutableStateOf<ShamsiDate?>(null) }
+
+    PickerDialogScaffold(
+        title = strings.title,
+        confirmText = strings.confirmText,
+        cancelText = strings.cancelText,
+        onCancel = onDismiss,
+        onConfirm = { confirmedValue?.let(onConfirm) },
+        colors = colors,
+        typography = typography,
+    ) {
+        ShamsiDatePicker(
+            onValueChange = { confirmedValue = it },
+            config = config,
+            colors = colors,
+            typography = typography,
+            strings = strings,
+        )
+    }
+}
+
+/**
+ * An inline date picker supporting both Shamsi and Gregorian calendars.
+ *
+ * Use [ShamsiDatePickerConfig] to set the initial date, optional date bounds,
+ * display style, and calendar type. Use [colors], [typography], and [strings] to
+ * restyle or re-word the picker.
+ */
+@Composable
+public fun ShamsiDatePicker(
+    onValueChange: (ShamsiDate) -> Unit,
+    modifier: Modifier = Modifier,
+    config: ShamsiDatePickerConfig = ShamsiDatePickerConfig(),
+    colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
+    typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
+    strings: ShamsiDatePickerStrings = ShamsiPickerDefaults.dateStrings(calendarType = config.calendarType),
+) {
     val calendarSystem = remember(config.calendarType) { config.calendarType.system }
     val initialDate =
         remember(config.initialDate, calendarSystem) {
@@ -106,28 +144,26 @@ public fun ShamsiDatePickerDialog(
     if (day > days.last) day = days.last
     if (day < days.first) day = days.first
 
-    PickerDialogScaffold(
-        title = strings.title,
-        confirmText = strings.confirmText,
-        cancelText = strings.cancelText,
-        onCancel = onDismiss,
-        onConfirm = {
-            val result = ShamsiDate(year, month, day, initialDate.hour, initialDate.minute)
-            onConfirm(result.fromSystem(calendarSystem))
-        },
-        colors = colors,
-        typography = typography,
-        header = {
-            StyleSwitcher(
-                selected = currentStyle,
-                onSelect = { currentStyle = it },
-                colors = colors,
-                typography = typography,
-                wheelLabel = strings.styleWheelLabel,
-                calendarLabel = strings.styleCalendarLabel,
-            )
-        },
+    LaunchedEffect(year, month, day, calendarSystem) {
+        val result = ShamsiDate(year, month, day, initialDate.hour, initialDate.minute)
+        onValueChange(result.fromSystem(calendarSystem))
+    }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        StyleSwitcher(
+            selected = currentStyle,
+            onSelect = { currentStyle = it },
+            colors = colors,
+            typography = typography,
+            wheelLabel = strings.styleWheelLabel,
+            calendarLabel = strings.styleCalendarLabel,
+        )
+
+        Spacer(modifier = Modifier.padding(bottom = ShamsiPickerDimens.DIALOG_BODY_SPACING_DP.dp))
+
         when (currentStyle) {
             ShamsiDatePickerStyle.Wheel -> {
                 WheelDatePicker(

@@ -53,7 +53,7 @@ public object ShamsiPickerDefaults {
         titleColor: Color = MaterialTheme.colorScheme.onSurface,
         wheelHighlightColor: Color =
             MaterialTheme.colorScheme.onSurface.copy(alpha = ShamsiPickerDimens.WHEEL_HIGHLIGHT_ALPHA),
-        fadeColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        fadeColor: Color = Color.Transparent,
         dialogContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
         switcherContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
         rangeStripColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = ShamsiPickerDimens.RANGE_STRIP_ALPHA),

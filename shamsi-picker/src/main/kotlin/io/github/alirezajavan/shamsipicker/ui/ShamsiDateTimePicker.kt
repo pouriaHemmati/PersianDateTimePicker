@@ -1,9 +1,11 @@
 package io.github.alirezajavan.shamsipicker.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +34,41 @@ import io.github.alirezajavan.shamsipicker.ui.theme.ShamsiPickerTypography
 public fun ShamsiDateTimePickerDialog(
     onConfirm: (ShamsiDate) -> Unit,
     onDismiss: () -> Unit,
+    config: ShamsiDateTimePickerConfig = ShamsiDateTimePickerConfig(),
+    colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
+    typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
+    strings: ShamsiDateTimePickerStrings = ShamsiPickerDefaults.dateTimeStrings(calendarType = config.calendarType),
+) {
+    var confirmedValue by remember { mutableStateOf<ShamsiDate?>(null) }
+
+    PickerDialogScaffold(
+        title = strings.title,
+        confirmText = strings.confirmText,
+        cancelText = strings.cancelText,
+        onCancel = onDismiss,
+        onConfirm = { confirmedValue?.let(onConfirm) },
+        colors = colors,
+        typography = typography,
+    ) {
+        ShamsiDateTimePicker(
+            onValueChange = { confirmedValue = it },
+            config = config,
+            colors = colors,
+            typography = typography,
+            strings = strings,
+        )
+    }
+}
+
+/**
+ * An inline combined date and time picker.
+ *
+ * Shows both date and time picker components stacked in a single view.
+ */
+@Composable
+public fun ShamsiDateTimePicker(
+    onValueChange: (ShamsiDate) -> Unit,
+    modifier: Modifier = Modifier,
     config: ShamsiDateTimePickerConfig = ShamsiDateTimePickerConfig(),
     colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
     typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
@@ -83,102 +120,95 @@ public fun ShamsiDateTimePickerDialog(
     if (day > days.last) day = days.last
     if (day < days.first) day = days.first
 
-    PickerDialogScaffold(
-        title = strings.title,
-        confirmText = strings.confirmText,
-        cancelText = strings.cancelText,
-        onCancel = onDismiss,
-        onConfirm = {
-            val result = ShamsiDate(year, month, day, hour, minute)
-            onConfirm(result.fromSystem(calendarSystem))
-        },
-        colors = colors,
-        typography = typography,
-        header = {
-            StyleSwitcher(
-                selected = currentStyle,
-                onSelect = { currentStyle = it },
-                colors = colors,
-                typography = typography,
-                wheelLabel = strings.styleWheelLabel,
-                calendarLabel = strings.styleCalendarLabel,
-            )
-        },
-    ) {
-        Column {
-            when (currentStyle) {
-                ShamsiDatePickerStyle.Wheel -> {
-                    WheelDatePicker(
-                        year = year,
-                        month = month,
-                        day = day,
-                        maxDay = maxDay,
-                        minDate = resolvedMin,
-                        maxDate = resolvedMax,
-                        calendarSystem = calendarSystem,
-                        numberFormatter = numberFormatter,
-                        colors = colors,
-                        typography = typography,
-                        onYear = { year = it },
-                        onMonth = { month = it },
-                        onDay = { day = it },
-                        visibleCount = wheelVisibleCount,
-                        dimAlpha = ShamsiPickerDimens.RANGE_WHEEL_DIM_ALPHA,
-                    )
-                }
+    LaunchedEffect(year, month, day, hour, minute, calendarSystem) {
+        val result = ShamsiDate(year, month, day, hour, minute)
+        onValueChange(result.fromSystem(calendarSystem))
+    }
 
-                ShamsiDatePickerStyle.Calendar -> {
-                    CalendarDatePicker(
-                        year = year,
-                        month = month,
-                        day = day,
-                        maxDay = maxDay,
-                        dayBounds = days,
-                        minDate = resolvedMin,
-                        maxDate = resolvedMax,
-                        calendarSystem = calendarSystem,
-                        numberFormatter = numberFormatter,
-                        firstDayOfWeek = firstDayOfWeek,
-                        colors = colors,
-                        typography = typography,
-                        strings = strings.toDatePickerStrings(),
-                        compact = config.compactCalendar,
-                        onYear = {
-                            year =
-                                it.coerceIn(
-                                    calendarSystem.yearRange.first,
-                                    calendarSystem.yearRange.last,
-                                )
-                        },
-                        onMonth = { month = it },
-                        onDay = { day = it },
-                    )
-                }
+    Column(modifier = modifier) {
+        StyleSwitcher(
+            selected = currentStyle,
+            onSelect = { currentStyle = it },
+            colors = colors,
+            typography = typography,
+            wheelLabel = strings.styleWheelLabel,
+            calendarLabel = strings.styleCalendarLabel,
+        )
+
+        Spacer(modifier = Modifier.padding(bottom = ShamsiPickerDimens.DIALOG_BODY_SPACING_DP.dp))
+
+        when (currentStyle) {
+            ShamsiDatePickerStyle.Wheel -> {
+                WheelDatePicker(
+                    year = year,
+                    month = month,
+                    day = day,
+                    maxDay = maxDay,
+                    minDate = resolvedMin,
+                    maxDate = resolvedMax,
+                    calendarSystem = calendarSystem,
+                    numberFormatter = numberFormatter,
+                    colors = colors,
+                    typography = typography,
+                    onYear = { year = it },
+                    onMonth = { month = it },
+                    onDay = { day = it },
+                    visibleCount = wheelVisibleCount,
+                    dimAlpha = ShamsiPickerDimens.RANGE_WHEEL_DIM_ALPHA,
+                )
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = ShamsiPickerDimens.RANGE_DIVIDER_PADDING_DP.dp),
-                color = colors.wheelHighlightColor,
-            )
-
-            TimePicker(
-                hour = hour,
-                minute = minute,
-                initialHour = initialDate.hour,
-                initialMinute = initialDate.minute,
-                minTime = resolvedMin?.toTime(),
-                maxTime = resolvedMax?.toTime(),
-                numberFormatter = numberFormatter,
-                colors = colors,
-                typography = typography,
-                amLabel = strings.amLabel,
-                pmLabel = strings.pmLabel,
-                onHourChange = { hour = it },
-                onMinuteChange = { minute = it },
-                visibleCount = wheelVisibleCount,
-                dimAlpha = ShamsiPickerDimens.RANGE_WHEEL_DIM_ALPHA,
-            )
+            ShamsiDatePickerStyle.Calendar -> {
+                CalendarDatePicker(
+                    year = year,
+                    month = month,
+                    day = day,
+                    maxDay = maxDay,
+                    dayBounds = days,
+                    minDate = resolvedMin,
+                    maxDate = resolvedMax,
+                    calendarSystem = calendarSystem,
+                    numberFormatter = numberFormatter,
+                    firstDayOfWeek = firstDayOfWeek,
+                    colors = colors,
+                    typography = typography,
+                    strings = strings.toDatePickerStrings(),
+                    compact = config.compactCalendar,
+                    onYear = {
+                        year =
+                            it.coerceIn(
+                                calendarSystem.yearRange.first,
+                                calendarSystem.yearRange.last,
+                            )
+                    },
+                    onMonth = { month = it },
+                    onDay = { day = it },
+                )
+            }
         }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = ShamsiPickerDimens.RANGE_DIVIDER_PADDING_DP.dp),
+            color = colors.wheelHighlightColor,
+        )
+
+        TimePicker(
+            hour = hour,
+            minute = minute,
+            initialHour = initialDate.hour,
+            initialMinute = initialDate.minute,
+            minTime = resolvedMin?.toTime(),
+            maxTime = resolvedMax?.toTime(),
+            numberFormatter = numberFormatter,
+            colors = colors,
+            typography = typography,
+            amLabel = strings.amLabel,
+            pmLabel = strings.pmLabel,
+            onHourChange = { hour = it },
+            onMinuteChange = { minute = it },
+            visibleCount = wheelVisibleCount,
+            dimAlpha = ShamsiPickerDimens.RANGE_WHEEL_DIM_ALPHA,
+        )
     }
 }
 

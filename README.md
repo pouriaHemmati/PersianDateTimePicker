@@ -31,6 +31,7 @@ This project is split into two modules:
 - **Theming & Text Customization**: Restyle colors, typography (including custom fonts), and re-word the title/buttons/labels of every dialog via `ShamsiPickerColors`, `ShamsiPickerTypography`, and `ShamsiPickerStrings` — no forking required.
 - **Weekend Awareness**: The Calendar-style grid — in the date, date+time, and date range pickers — always highlights fixed weekly days off (Thursday/Friday for Shamsi, Saturday/Sunday for Gregorian) — no configuration needed.
 - **Holiday / Event Markers**: Mark days with a `CalendarEvent` (label, `CalendarEventType`, optional color) in the Calendar-style grid, via `events` on `ShamsiDatePickerConfig` or `ShamsiDateRangePickerConfig`. `Holiday` events render like a weekend (bold, colored day number); `Event` events show a small colored dot instead. Labels are exposed via `contentDescription` for screen readers.
+- **Inline Composables**: All pickers are available as standalone composables (`ShamsiDatePicker`, `ShamsiTimePicker`, etc.), allowing you to embed them directly into your screens without a dialog wrapper.
 
 ## Screenshots
 
@@ -52,14 +53,14 @@ Add the following to your `build.gradle.kts`:
 ```kotlin
 dependencies {
     // Includes shamsi-core automatically
-    implementation("io.github.alirezajavan:shamsi-picker:1.5.0")
+    implementation("io.github.alirezajavan:shamsi-picker:1.6.0")
 }
 ```
 
 ### JVM / Non-UI
 ```kotlin
 dependencies {
-    implementation("io.github.alirezajavan:shamsi-core:1.5.0")
+    implementation("io.github.alirezajavan:shamsi-core:1.6.0")
 }
 ```
 
@@ -168,6 +169,28 @@ if (showTimeRangePicker) {
             initialTo = ShamsiTime(17, 0),
         ),
     )
+}
+```
+
+### Inline Usage (No Dialog)
+
+Every `*PickerDialog` has a corresponding `*Picker` composable that can be embedded directly in any layout.
+
+```kotlin
+var selectedDate by remember { mutableStateOf(ShamsiDate.Now) }
+
+Column {
+    Text("Pick a date:")
+    
+    ShamsiDatePicker(
+        onValueChange = { selectedDate = it },
+        config = ShamsiDatePickerConfig(
+            style = ShamsiDatePickerStyle.Calendar,
+            compactCalendar = true
+        )
+    )
+    
+    Text("Selected: ${DateFormatter.long(selectedDate, CalendarType.Shamsi)}")
 }
 ```
 

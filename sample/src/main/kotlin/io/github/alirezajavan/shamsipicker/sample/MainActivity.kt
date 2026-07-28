@@ -73,10 +73,15 @@ import io.github.alirezajavan.shamsipicker.model.ShamsiTime
 import io.github.alirezajavan.shamsipicker.model.ShamsiTimePickerConfig
 import io.github.alirezajavan.shamsipicker.model.ShamsiTimeRange
 import io.github.alirezajavan.shamsipicker.model.ShamsiTimeRangePickerConfig
+import io.github.alirezajavan.shamsipicker.ui.ShamsiDatePicker
 import io.github.alirezajavan.shamsipicker.ui.ShamsiDatePickerDialog
+import io.github.alirezajavan.shamsipicker.ui.ShamsiDateRangePicker
 import io.github.alirezajavan.shamsipicker.ui.ShamsiDateRangePickerDialog
+import io.github.alirezajavan.shamsipicker.ui.ShamsiDateTimePicker
 import io.github.alirezajavan.shamsipicker.ui.ShamsiDateTimePickerDialog
+import io.github.alirezajavan.shamsipicker.ui.ShamsiTimePicker
 import io.github.alirezajavan.shamsipicker.ui.ShamsiTimePickerDialog
+import io.github.alirezajavan.shamsipicker.ui.ShamsiTimeRangePicker
 import io.github.alirezajavan.shamsipicker.ui.ShamsiTimeRangePickerDialog
 import io.github.alirezajavan.shamsipicker.ui.theme.ShamsiPickerColors
 import io.github.alirezajavan.shamsipicker.ui.theme.ShamsiPickerDefaults
@@ -101,6 +106,7 @@ enum class SampleTab(
 ) {
     Single("Single", Icons.Default.CalendarToday),
     Range("Range", Icons.Default.DateRange),
+    Inline("Inline", Icons.Default.Timer),
     Settings("Config", Icons.Default.Settings),
 }
 
@@ -293,6 +299,94 @@ fun SampleScreen() {
                                 icon = Icons.Default.MoreTime,
                                 onClick = { showTimeRangePicker = true },
                             )
+                        }
+                    }
+                }
+
+                SampleTab.Inline -> {
+                    item {
+                        Text(
+                            text = "Inline Composables",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = "Embed pickers directly in your layout without a dialog.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline,
+                        )
+                    }
+
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    text = "Inline Date Picker",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                ShamsiDatePicker(
+                                    onValueChange = { selectedDate = it },
+                                    config =
+                                        ShamsiDatePickerConfig(
+                                            initialDate = selectedDate,
+                                            calendarType = calendarType,
+                                            style = ShamsiDatePickerStyle.Calendar,
+                                            compactCalendar = true,
+                                        ),
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Selected: ${DateFormatter.long(selectedDate, calendarType)}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    text = "Inline Time Picker",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                ShamsiTimePicker(
+                                    onValueChange = { time ->
+                                        selectedDate = selectedDate.copy(hour = time.hour, minute = time.minute)
+                                    },
+                                    config =
+                                        ShamsiTimePickerConfig(
+                                            initialTime = selectedDate.toTime(),
+                                            calendarType = calendarType,
+                                        ),
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Selected: ${DateFormatter.time(selectedDate, calendarType)}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
                         }
                     }
                 }

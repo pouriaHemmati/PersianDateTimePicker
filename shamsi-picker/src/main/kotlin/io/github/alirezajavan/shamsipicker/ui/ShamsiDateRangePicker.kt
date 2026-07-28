@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -64,6 +66,43 @@ import io.github.alirezajavan.shamsipicker.ui.theme.ShamsiPickerTypography
 public fun ShamsiDateRangePickerDialog(
     onConfirm: (ShamsiDateRange) -> Unit,
     onDismiss: () -> Unit,
+    config: ShamsiDateRangePickerConfig = ShamsiDateRangePickerConfig(),
+    colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
+    typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
+    strings: ShamsiDateRangePickerStrings = ShamsiPickerDefaults.dateRangeStrings(calendarType = config.calendarType),
+) {
+    var confirmedValue by remember { mutableStateOf<ShamsiDateRange?>(null) }
+
+    PickerDialogScaffold(
+        title = strings.title,
+        confirmText = strings.confirmText,
+        cancelText = strings.cancelText,
+        onCancel = onDismiss,
+        onConfirm = { confirmedValue?.let(onConfirm) },
+        colors = colors,
+        typography = typography,
+    ) {
+        ShamsiDateRangePicker(
+            onValueChange = { confirmedValue = it },
+            config = config,
+            colors = colors,
+            typography = typography,
+            strings = strings,
+        )
+    }
+}
+
+/**
+ * An inline date range picker supporting both Shamsi and Gregorian calendars.
+ *
+ * Use [ShamsiDateRangePickerConfig] to set the initial range, optional date bounds,
+ * display style, and calendar type. Use [colors], [typography], and [strings] to
+ * restyle or re-word the picker.
+ */
+@Composable
+public fun ShamsiDateRangePicker(
+    onValueChange: (ShamsiDateRange) -> Unit,
+    modifier: Modifier = Modifier,
     config: ShamsiDateRangePickerConfig = ShamsiDateRangePickerConfig(),
     colors: ShamsiPickerColors = ShamsiPickerDefaults.colors(),
     typography: ShamsiPickerTypography = ShamsiPickerDefaults.typography(),
@@ -130,48 +169,58 @@ public fun ShamsiDateRangePickerDialog(
     var viewYear by remember { mutableIntStateOf(initFrom.year) }
     var viewMonth by remember { mutableIntStateOf(initFrom.month) }
 
-    fun buildResult(): ShamsiDateRange =
-        when (currentStyle) {
-            ShamsiDatePickerStyle.Wheel -> {
-                val from = ShamsiDate(fromYear, fromMonth, fromDay, initFrom.hour, initFrom.minute)
-                val to = ShamsiDate(toYear, toMonth, toDay, initTo.hour, initTo.minute)
-                val result = if (from <= to) ShamsiDateRange(from, to) else ShamsiDateRange(to, from)
-                ShamsiDateRange(
-                    result.from.fromSystem(calendarSystem),
-                    result.to.fromSystem(calendarSystem),
-                )
-            }
-
-            ShamsiDatePickerStyle.Calendar -> {
-                val effectiveTo = toDate ?: fromDate
-                val from = fromDate.copy(hour = initFrom.hour, minute = initFrom.minute)
-                val to = effectiveTo.copy(hour = initTo.hour, minute = initTo.minute)
-                ShamsiDateRange(
-                    from.fromSystem(calendarSystem),
-                    to.fromSystem(calendarSystem),
-                )
-            }
-        }
-
-    PickerDialogScaffold(
-        title = strings.title,
-        confirmText = strings.confirmText,
-        cancelText = strings.cancelText,
-        onCancel = onDismiss,
-        onConfirm = { onConfirm(buildResult()) },
-        colors = colors,
-        typography = typography,
-        header = {
-            StyleSwitcher(
-                selected = currentStyle,
-                onSelect = { currentStyle = it },
-                colors = colors,
-                typography = typography,
-                wheelLabel = strings.styleWheelLabel,
-                calendarLabel = strings.styleCalendarLabel,
-            )
-        },
+    LaunchedEffect(
+        currentStyle,
+        fromYear,
+        fromMonth,
+        fromDay,
+        toYear,
+        toMonth,
+        toDay,
+        fromDate,
+        toDate,
+        calendarSystem,
     ) {
+        val result =
+            when (currentStyle) {
+                ShamsiDatePickerStyle.Wheel -> {
+                    val from = ShamsiDate(fromYear, fromMonth, fromDay, initFrom.hour, initFrom.minute)
+                    val to = ShamsiDate(toYear, toMonth, toDay, initTo.hour, initTo.minute)
+                    val sorted = if (from <= to) ShamsiDateRange(from, to) else ShamsiDateRange(to, from)
+                    ShamsiDateRange(
+                        sorted.from.fromSystem(calendarSystem),
+                        sorted.to.fromSystem(calendarSystem),
+                    )
+                }
+
+                ShamsiDatePickerStyle.Calendar -> {
+                    val effectiveTo = toDate ?: fromDate
+                    val from = fromDate.copy(hour = initFrom.hour, minute = initFrom.minute)
+                    val to = effectiveTo.copy(hour = initTo.hour, minute = initTo.minute)
+                    ShamsiDateRange(
+                        from.fromSystem(calendarSystem),
+                        to.fromSystem(calendarSystem),
+                    )
+                }
+            }
+        onValueChange(result)
+    }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        StyleSwitcher(
+            selected = currentStyle,
+            onSelect = { currentStyle = it },
+            colors = colors,
+            typography = typography,
+            wheelLabel = strings.styleWheelLabel,
+            calendarLabel = strings.styleCalendarLabel,
+        )
+
+        Spacer(modifier = Modifier.padding(bottom = ShamsiPickerDimens.DIALOG_BODY_SPACING_DP.dp))
+
         when (currentStyle) {
             ShamsiDatePickerStyle.Wheel -> {
                 WheelDateRangePicker(
