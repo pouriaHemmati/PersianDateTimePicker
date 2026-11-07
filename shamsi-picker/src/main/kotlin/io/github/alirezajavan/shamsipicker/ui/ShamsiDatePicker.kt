@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -126,6 +127,11 @@ public fun ShamsiDatePicker(
         remember(config.firstDayOfWeek, calendarSystem) {
             config.firstDayOfWeek ?: calendarSystem.defaultFirstDayOfWeek
         }
+    val today = remember(calendarSystem) { calendarSystem.today() }
+    val todayEpochDay = calendarSystem.toEpochDay(today.first, today.second, today.third)
+    val todayEnabled =
+        (resolvedMin == null || todayEpochDay >= calendarSystem.toEpochDay(resolvedMin.year, resolvedMin.month, resolvedMin.day)) &&
+            (resolvedMax == null || todayEpochDay <= calendarSystem.toEpochDay(resolvedMax.year, resolvedMax.month, resolvedMax.day))
 
     var currentStyle by remember { mutableStateOf(config.style) }
     var year by remember {
@@ -206,6 +212,14 @@ public fun ShamsiDatePicker(
                     strings = strings,
                     compact = config.compactCalendar,
                     events = config.events,
+                    weekendDays = config.weekendDays,
+                    showTodayButton = true,
+                    todayEnabled = todayEnabled,
+                    onToday = {
+                        year = today.first
+                        month = today.second
+                        day = today.third
+                    },
                     onYear = {
                         year =
                             it.coerceIn(
@@ -317,6 +331,10 @@ internal fun CalendarDatePicker(
     onDay: (Int) -> Unit,
     compact: Boolean = false,
     events: List<CalendarEvent> = emptyList(),
+    weekendDays: Set<java.time.DayOfWeek>? = null,
+    showTodayButton: Boolean = false,
+    todayEnabled: Boolean = false,
+    onToday: () -> Unit = {},
 ) {
     val afterMin = { y: Int, m: Int ->
         minDate == null ||
@@ -408,7 +426,7 @@ internal fun CalendarDatePicker(
                                     day = dayNumber,
                                     selected = dayNumber == day,
                                     enabled = dayNumber in dayBounds,
-                                    isWeekend = calendarSystem.isWeekend(year, month, dayNumber),
+                                    isWeekend = calendarSystem.isWeekend(year, month, dayNumber, weekendDays),
                                     numberFormatter = numberFormatter,
                                     colors = colors,
                                     typography = typography,
@@ -421,6 +439,15 @@ internal fun CalendarDatePicker(
                         }
                     }
                 }
+            }
+        }
+        if (showTodayButton) {
+            TextButton(
+                onClick = onToday,
+                enabled = todayEnabled,
+                modifier = Modifier.padding(top = 4.dp),
+            ) {
+                Text(strings.todayText)
             }
         }
     }

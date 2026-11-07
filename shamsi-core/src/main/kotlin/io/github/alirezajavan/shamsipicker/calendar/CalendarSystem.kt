@@ -98,8 +98,9 @@ public interface CalendarSystem {
         year: Int,
         month: Int,
         day: Int,
+        customWeekendDays: Set<DayOfWeek>? = null,
     ): Boolean {
         val dayOfWeek = LocalDate.ofEpochDay(toEpochDay(year, month, day)).dayOfWeek
-        return dayOfWeek in weekendDays
+        return dayOfWeek in (customWeekendDays ?: weekendDays)
     }
 }

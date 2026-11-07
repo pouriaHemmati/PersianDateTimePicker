@@ -117,6 +117,7 @@ public object ShamsiPickerDefaults {
         prevYearDescription: String = localizedString(calendarType, R.string.shamsi_date_picker_prev_year),
         nextYearDescription: String = localizedString(calendarType, R.string.shamsi_date_picker_next_year),
         weekendDescription: String = localizedString(calendarType, R.string.shamsi_date_picker_weekend),
+        todayText: String = localizedString(calendarType, R.string.shamsi_date_picker_today),
     ): ShamsiDatePickerStrings =
         ShamsiDatePickerStrings(
             title = title,
@@ -129,6 +130,7 @@ public object ShamsiPickerDefaults {
             prevYearDescription = prevYearDescription,
             nextYearDescription = nextYearDescription,
             weekendDescription = weekendDescription,
+            todayText = todayText,
         )
 
     @Composable

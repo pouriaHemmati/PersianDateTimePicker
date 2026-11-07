@@ -31,4 +31,6 @@ public data class ShamsiDatePickerConfig(
     val compactCalendar: Boolean = false,
     val compactWheel: Boolean = false,
     val events: List<CalendarEvent> = emptyList(),
+    /** Overrides the calendar system's default weekend days when supplied. */
+    val weekendDays: Set<DayOfWeek>? = null,
 )

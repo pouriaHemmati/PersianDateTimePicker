@@ -17,6 +17,7 @@ public data class ShamsiDatePickerStrings(
     val prevYearDescription: String,
     val nextYearDescription: String,
     val weekendDescription: String = "Weekend",
+    val todayText: String = "Today",
 )
 
 /**

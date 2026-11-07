@@ -2,6 +2,7 @@ package io.github.alirezajavan.shamsipicker.calendar
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 class CalendarSystemTest {
@@ -102,5 +103,25 @@ class CalendarSystemTest {
         assertThat(GregorianCalendarSystem.isWeekend(2024, 8, 1)).isFalse()
         assertThat(GregorianCalendarSystem.isWeekend(2024, 8, 3)).isTrue()
         assertThat(GregorianCalendarSystem.isWeekend(2024, 8, 4)).isTrue()
+    }
+
+    @Test
+    fun `weekend days can be overridden by the caller`() {
+        assertThat(
+            ShamsiCalendarSystem.isWeekend(
+                1403,
+                1,
+                2,
+                setOf(DayOfWeek.FRIDAY),
+            ),
+        ).isFalse()
+        assertThat(
+            ShamsiCalendarSystem.isWeekend(
+                1403,
+                1,
+                3,
+                setOf(DayOfWeek.FRIDAY),
+            ),
+        ).isTrue()
     }
 }
